@@ -40,6 +40,9 @@ import java.lang.reflect.Method;
  */
 public class DefaultAnnotationResolver implements AnnotationResolver {
 
+    // 这是默认寻找方法注解的解析器
+    // 遵循先找方法注解，再找类注解
+
     /**
      * Returns {@code methodInvocation.}{@link org.apache.shiro.aop.MethodInvocation#getMethod() getMethod()}.{@link Method#getAnnotation(Class) getAnnotation(clazz)}.
      *
@@ -66,6 +69,7 @@ public class DefaultAnnotationResolver implements AnnotationResolver {
 
         // 如果方法没有注解，那么试试目标对象是否有这个注解
         if (annotation == null) {
+            // miThis 可能是 null，当此处调用的是静态方法时
             Object miThis = mi.getThis();
             //SHIRO-473 - miThis could be null for static methods, just return null
             annotation = miThis != null ? miThis.getClass().getAnnotation(clazz) : null;

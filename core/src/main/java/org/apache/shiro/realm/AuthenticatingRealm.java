@@ -481,11 +481,17 @@ public abstract class AuthenticatingRealm extends CachingRealm implements Initia
     private AuthenticationInfo getCachedAuthenticationInfo(AuthenticationToken token) {
         AuthenticationInfo info = null;
 
+        // 获取缓存，也可能获取不到(因为缓存禁用了)
         Cache<Object, AuthenticationInfo> cache = getAvailableAuthenticationCache();
         if (cache != null && token != null) {
             log.trace("Attempting to retrieve the AuthenticationInfo from cache.");
+
+            // 访问缓存需要 Key
             Object key = getAuthenticationCacheKey(token);
+
+            // 检索缓存
             info = cache.get(key);
+
             if (info == null) {
                 log.trace("No AuthorizationInfo found in cache for key [{}]", key);
             } else {
@@ -564,7 +570,7 @@ public abstract class AuthenticatingRealm extends CachingRealm implements Initia
      * @throws AuthenticationException if authentication failed.
      */
     public final AuthenticationInfo getAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
-
+        // 由于任何 Realm 都有缓存的能力，所以先尝试从缓存中获取
         AuthenticationInfo info = getCachedAuthenticationInfo(token);
         if (info == null) {
             //otherwise not cached, perform the lookup:

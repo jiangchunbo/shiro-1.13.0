@@ -23,7 +23,6 @@ import org.apache.shiro.aop.AnnotationResolver;
 import org.apache.shiro.aop.MethodInvocation;
 import org.apache.shiro.authz.AuthorizationException;
 
-
 /**
  * An <tt>AnnotationMethodInterceptor</tt> that asserts the calling code is authorized to execute the method
  * before allowing the invocation to continue by inspecting code annotations to perform an access control check.
@@ -64,7 +63,9 @@ public abstract class AuthorizingAnnotationMethodInterceptor extends AnnotationM
      * @throws Throwable                                     if any other error occurs.
      */
     public Object invoke(MethodInvocation methodInvocation) throws Throwable {
+        // 执行方法前调用 assertAuthorized 进行权限检查，如果没有权限就抛出异常
         assertAuthorized(methodInvocation);
+
         return methodInvocation.proceed();
     }
 
@@ -83,7 +84,9 @@ public abstract class AuthorizingAnnotationMethodInterceptor extends AnnotationM
      */
     public void assertAuthorized(MethodInvocation mi) throws AuthorizationException {
         try {
-            // 获得一个注解处理器，调用它的 "鉴权断言"
+            // 不同的注解有不同的实现类
+            // 1) getAnnotation(mi) 获取当前 handler 关心的注解
+            // 2) 调用 handler.assertAuthorized 进行权限校验
             ((AuthorizingAnnotationHandler) getHandler()).assertAuthorized(getAnnotation(mi));
         } catch (AuthorizationException ae) {
             // Annotation handler doesn't know why it was called, so add the information here if possible. 
@@ -94,4 +97,5 @@ public abstract class AuthorizingAnnotationMethodInterceptor extends AnnotationM
             throw ae;
         }
     }
+
 }

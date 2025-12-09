@@ -30,8 +30,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.text.DateFormat;
-import java.util.*;
-
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Simple {@link org.apache.shiro.session.Session} JavaBeans-compatible POJO implementation, intended to be used on the
@@ -52,18 +55,28 @@ public class SimpleSession implements ValidatingSession, Serializable {
     private transient static final Logger log = LoggerFactory.getLogger(SimpleSession.class);
 
     protected static final long MILLIS_PER_SECOND = 1000;
+
     protected static final long MILLIS_PER_MINUTE = 60 * MILLIS_PER_SECOND;
+
     protected static final long MILLIS_PER_HOUR = 60 * MILLIS_PER_MINUTE;
 
     //serialization bitmask fields. DO NOT CHANGE THE ORDER THEY ARE DECLARED!
     static int bitIndexCounter = 0;
+
     private static final int ID_BIT_MASK = 1 << bitIndexCounter++;
+
     private static final int START_TIMESTAMP_BIT_MASK = 1 << bitIndexCounter++;
+
     private static final int STOP_TIMESTAMP_BIT_MASK = 1 << bitIndexCounter++;
+
     private static final int LAST_ACCESS_TIME_BIT_MASK = 1 << bitIndexCounter++;
+
     private static final int TIMEOUT_BIT_MASK = 1 << bitIndexCounter++;
+
     private static final int EXPIRED_BIT_MASK = 1 << bitIndexCounter++;
+
     private static final int HOST_BIT_MASK = 1 << bitIndexCounter++;
+
     private static final int ATTRIBUTES_BIT_MASK = 1 << bitIndexCounter++;
 
     // ==============================================================
@@ -84,12 +97,22 @@ public class SimpleSession implements ValidatingSession, Serializable {
     //
     // ==============================================================
     private transient Serializable id;
+
     private transient Date startTimestamp;
+
     private transient Date stopTimestamp;
+
     private transient Date lastAccessTime;
+
     private transient long timeout;
+
+    /**
+     * 只是一个辅助的字段，用于快速判断是否会话过期
+     */
     private transient boolean expired;
+
     private transient String host;
+
     private transient Map<Object, Object> attributes;
 
     public SimpleSession() {
@@ -134,7 +157,7 @@ public class SimpleSession implements ValidatingSession, Serializable {
      * Once stopped, a session may no longer be used.  It is locked from all further activity.
      *
      * @return The time the session was stopped, or <tt>null</tt> if the session is still
-     *         active.
+     * active.
      */
     public Date getStopTimestamp() {
         return stopTimestamp;
@@ -194,6 +217,13 @@ public class SimpleSession implements ValidatingSession, Serializable {
         this.lastAccessTime = new Date();
     }
 
+    /**
+     * 停止这个 Session
+     * <p>
+     * 当 {@link SimpleSession#stopTimestamp} 不为空时，意味着这个 Session 已经被停止
+     *
+     * @see SimpleSession#stopTimestamp
+     */
     public void stop() {
         if (this.stopTimestamp == null) {
             this.stopTimestamp = new Date();
@@ -204,8 +234,14 @@ public class SimpleSession implements ValidatingSession, Serializable {
         return getStopTimestamp() != null;
     }
 
+    /**
+     * 使会话过期
+     */
     protected void expire() {
+        // 停止会话。这意味着可以手动 stop 会话，也可以因为超时而 stop
         stop();
+
+        // 标记为过期
         this.expired = true;
     }
 
@@ -223,16 +259,19 @@ public class SimpleSession implements ValidatingSession, Serializable {
      */
     protected boolean isTimedOut() {
 
+        // 从缓存中获取
         if (isExpired()) {
             return true;
         }
 
+        // 获取超时时间
         long timeout = getTimeout();
-
         if (timeout >= 0l) {
 
+            // 检查原则就是获取 [最后一次访问时间] + timeout 是否大于 当前时间
             Date lastAccessTime = getLastAccessTime();
 
+            // [最后一次访问时间] 是 null 数据异常
             if (lastAccessTime == null) {
                 String msg = "session.lastAccessTime for session with id [" +
                         getId() + "] is null.  This value must be set at " +
@@ -262,6 +301,8 @@ public class SimpleSession implements ValidatingSession, Serializable {
 
     public void validate() throws InvalidSessionException {
         //check for stopped:
+
+        // 会话超时会导致调用 stop
         if (isStopped()) {
             //timestamp is set, so the session is considered stopped:
             String msg = "Session with id [" + getId() + "] has been " +
@@ -271,9 +312,13 @@ public class SimpleSession implements ValidatingSession, Serializable {
         }
 
         //check for expiration
+        // 根据 lastAccessTime 和 timeout 判断是否超时 (会话超时也意味着会话无效了)
         if (isTimedOut()) {
+
+            // 停止会话，标记为 expired
             expire();
 
+            // 下面只是记录日志、抛出异常，不重要
             //throw an exception explaining details of why it expired:
             Date lastAccessTime = getLastAccessTime();
             long timeout = getTimeout();
@@ -293,6 +338,9 @@ public class SimpleSession implements ValidatingSession, Serializable {
         }
     }
 
+    /**
+     * 获取属性 Map，在内存中，惰性创建
+     */
     private Map<Object, Object> getAttributesLazy() {
         Map<Object, Object> attributes = getAttributes();
         if (attributes == null) {
@@ -318,10 +366,16 @@ public class SimpleSession implements ValidatingSession, Serializable {
         return attributes.get(key);
     }
 
+    /**
+     * 设置属性
+     * <p>
+     * 设置属性也可以是清除属性，只要 value 是 null
+     */
     public void setAttribute(Object key, Object value) {
         if (value == null) {
             removeAttribute(key);
         } else {
+            // 获取属性 Map，不存在就创建
             getAttributesLazy().put(key, value);
         }
     }
@@ -415,7 +469,7 @@ public class SimpleSession implements ValidatingSession, Serializable {
      * <code>getClass().getName() + &quot;,id=&quot; + getId()</code>.
      *
      * @return the string representation of this SimpleSession, equal to
-     *         <code>getClass().getName() + &quot;,id=&quot; + getId()</code>.
+     * <code>getClass().getName() + &quot;,id=&quot; + getId()</code>.
      * @since 1.0
      */
     @Override
@@ -531,7 +585,7 @@ public class SimpleSession implements ValidatingSession, Serializable {
      *                     been serialized, 0 means it hasn't been serialized.
      * @param fieldBitMask the field bit mask constant identifying which bit to inspect (corresponds to a class attribute).
      * @return {@code true} if the given {@code bitMask} argument indicates that the specified field has been
-     *         serialized and therefore should be read during deserialization, {@code false} otherwise.
+     * serialized and therefore should be read during deserialization, {@code false} otherwise.
      * @since 1.0
      */
     private static boolean isFieldPresent(short bitMask, int fieldBitMask) {

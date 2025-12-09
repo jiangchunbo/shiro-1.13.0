@@ -95,11 +95,22 @@ public abstract class AbstractNativeSessionManager extends AbstractSessionManage
         }
     }
 
+    /**
+     * 开启会话的入口方法
+     */
     public Session start(SessionContext context) {
+        // 底层调用 SessionFactory 创建新的 Session 对象
         Session session = createSession(context);
+
+        // 赋予 timeout
         applyGlobalSessionTimeout(session);
+
+        // 可能会 Set-Cookie、设置 request attribute
         onStart(session, context);
+
+        // 通知所有监听器
         notifyStart(session);
+
         //Don't expose the EIS-tier Session object to the client-tier:
         return createExposedSession(session, context);
     }

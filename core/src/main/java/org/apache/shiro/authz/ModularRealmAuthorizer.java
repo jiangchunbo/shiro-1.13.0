@@ -218,8 +218,13 @@ public class ModularRealmAuthorizer implements Authorizer, PermissionResolverAwa
      */
     public boolean isPermitted(PrincipalCollection principals, String permission) {
         assertRealmsConfigured();
+
+        // 获取所有的 [领域] 这些领域可能是具有授权能力的
         for (Realm realm : getRealms()) {
+            // 如果没有授权能力就继续
             if (!(realm instanceof Authorizer)) continue;
+
+            // 调用其授权能力检查是否有这个权限，而且只要任何一个 Realm 有权限就认为是有权限的
             if (((Authorizer) realm).isPermitted(principals, permission)) {
                 return true;
             }

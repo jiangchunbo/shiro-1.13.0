@@ -19,10 +19,17 @@
 package org.apache.shiro.authz.aop;
 
 import org.apache.shiro.aop.AnnotationResolver;
+import org.apache.shiro.aop.MethodInvocation;
 
 /**
  * Checks to see if a @{@link org.apache.shiro.authz.annotation.RequiresPermissions RequiresPermissions} annotation is declared, and if so, performs
  * a permission check to see if the calling <code>Subject</code> is allowed to call the method.
+ * <p>
+ * AOP 编程范式中的 MethodInterceptor，检查是否声明了 {@link org.apache.shiro.authz.annotation.RequiresPermissions RequiresPermissions} 注解，以此执行权限检查
+ * <p>
+ * 本质上就是在执行方法前调用 {@link AuthorizingAnnotationMethodInterceptor#assertAuthorized(MethodInvocation)}
+ *
+ * @see PermissionAnnotationHandler
  * @since 0.9
  */
 public class PermissionAnnotationMethodInterceptor extends AuthorizingAnnotationMethodInterceptor {
@@ -37,7 +44,9 @@ public class PermissionAnnotationMethodInterceptor extends AuthorizingAnnotation
      * {@link org.apache.shiro.authz.annotation.RequiresPermissions RequiresPermissions} annotations in a method declaration.
      */
     public PermissionAnnotationMethodInterceptor() {
-        super( new PermissionAnnotationHandler() );
+        // 内部委托给 PermissionAnnotationHandler 去决策
+        // 使用默认的注解解析器 DefaultAnnotationResolver
+        super(new PermissionAnnotationHandler());
     }
 
     /**
@@ -45,7 +54,7 @@ public class PermissionAnnotationMethodInterceptor extends AuthorizingAnnotation
      * @since 1.1
      */
     public PermissionAnnotationMethodInterceptor(AnnotationResolver resolver) {
-        super( new PermissionAnnotationHandler(), resolver);
+        super(new PermissionAnnotationHandler(), resolver);
     }
 
     /*

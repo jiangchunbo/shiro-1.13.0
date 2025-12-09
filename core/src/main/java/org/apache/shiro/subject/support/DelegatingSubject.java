@@ -76,9 +76,13 @@ public class DelegatingSubject implements Subject {
             DelegatingSubject.class.getName() + ".RUN_AS_PRINCIPALS_SESSION_KEY";
 
     protected PrincipalCollection principals;
+
     protected boolean authenticated;
+
     protected String host;
+
     protected Session session;
+
     /**
      * @since 1.2
      */
@@ -206,6 +210,7 @@ public class DelegatingSubject implements Subject {
 
     public void checkPermission(String permission) throws AuthorizationException {
         assertAuthzCheckPossible();
+        // 检查是否存在任何一个 [领域] 有权限
         securityManager.checkPermission(getPrincipals(), permission);
     }
 
@@ -316,6 +321,11 @@ public class DelegatingSubject implements Subject {
         return getSession(true);
     }
 
+    /**
+     * 当 Subject 想要获得一个会话时
+     *
+     * @param create 允许自动创建会话对象
+     */
     public Session getSession(boolean create) {
         if (log.isTraceEnabled()) {
             log.trace("attempting to get session; create = " + create +
@@ -323,8 +333,8 @@ public class DelegatingSubject implements Subject {
                     "; session has id = " + (this.session != null && session.getId() != null));
         }
 
+        // 如果当前还没有 session，而且允许创建
         if (this.session == null && create) {
-
             //added in 1.2:
             if (!isSessionCreationEnabled()) {
                 String msg = "Session creation has been disabled for the current subject.  This exception indicates " +
@@ -336,8 +346,15 @@ public class DelegatingSubject implements Subject {
             }
 
             log.trace("Starting session for host {}", getHost());
+
+            // 创建会话上下文，里面基本是空的，有可能就只有一个 host 属性
             SessionContext sessionContext = createSessionContext();
+
+            // 开启一个新的会话 -> 底层会使用 SessionManager
+            // 这个 Session 底层可能是 SimpleSession，然后被 DelegatingSession 包装，下面又要被包装
             Session session = this.securityManager.start(sessionContext);
+
+            // 装饰 session，这是为了在会话停止时，能够把 Subject 的会话也设置为 null
             this.session = decorate(session);
         }
         return this.session;
@@ -423,8 +440,8 @@ public class DelegatingSubject implements Subject {
             super.stop();
             owner.sessionStopped();
         }
-    }
 
+    }
 
     // ======================================
     // 'Run As' support implementations
@@ -524,4 +541,5 @@ public class DelegatingSubject implements Subject {
 
         return popped;
     }
+
 }

@@ -22,6 +22,8 @@ import org.apache.shiro.session.Session;
 
 /**
  * {@code SessionFactory} implementation that generates {@link SimpleSession} instances.
+ * <p>
+ * 本项目唯一一个 {@link SessionFactory} 实现类，用于得到一个 {@link Session} 对象，而且类型是 {@link SimpleSession}
  *
  * @since 1.0
  */
@@ -43,4 +45,5 @@ public class SimpleSessionFactory implements SessionFactory {
         }
         return new SimpleSession();
     }
+
 }

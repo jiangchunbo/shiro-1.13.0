@@ -36,6 +36,8 @@ import java.lang.reflect.Method;
  */
 public class SpringAnnotationResolver implements AnnotationResolver {
 
+    // 这是默认的 Spring AnnotationResolver，使用 Spring 的 AnnotationUtils 来寻找注解
+
     public Annotation getAnnotation(MethodInvocation mi, Class<? extends Annotation> clazz) {
         Method m = mi.getMethod();
 

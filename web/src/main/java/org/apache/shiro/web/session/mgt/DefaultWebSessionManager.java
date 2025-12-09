@@ -252,11 +252,12 @@ public class DefaultWebSessionManager extends DefaultSessionManager implements W
             log.debug("SessionContext argument is not HTTP compatible or does not have an HTTP request/response " +
                     "pair. No session ID cookie will be set.");
             return;
-
         }
+
         HttpServletRequest request = WebUtils.getHttpRequest(context);
         HttpServletResponse response = WebUtils.getHttpResponse(context);
 
+        // 如果开启了 Cookie，那么就写入响应中 (Set-Cookie)
         if (isSessionIdCookieEnabled()) {
             Serializable sessionId = session.getId();
             storeSessionId(sessionId, request, response);

@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 /**
  * A very basic abstract extension point for the {@link Realm} interface that provides caching support for subclasses.
  * <p/>
@@ -39,6 +38,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * realm subclasses for obtaining a realm-specific principal/identity.
  * <p/>
  * All actual Realm method implementations are left to subclasses.
+ * <p>
+ * 具有缓存能力的 Realm，所有 Realm 都需要继承这个，表示它具有缓存的能力，但是你可以不用
  *
  * @see #clearCache(org.apache.shiro.subject.PrincipalCollection)
  * @see #onLogout(org.apache.shiro.subject.PrincipalCollection)
@@ -57,7 +58,9 @@ public abstract class CachingRealm implements Realm, Nameable, CacheManagerAware
     |    I N S T A N C E   V A R I A B L E S    |
     ============================================*/
     private String name;
+
     private boolean cachingEnabled;
+
     private CacheManager cacheManager;
 
     /**
@@ -78,7 +81,7 @@ public abstract class CachingRealm implements Realm, Nameable, CacheManagerAware
      * caching is disabled.
      *
      * @return the <tt>CacheManager</tt> used for data caching to reduce EIS round trips, or <tt>null</tt> if
-     *         caching is disabled.
+     * caching is disabled.
      */
     public CacheManager getCacheManager() {
         return this.cacheManager;
@@ -105,7 +108,7 @@ public abstract class CachingRealm implements Realm, Nameable, CacheManagerAware
      * manage account data in memory already lookups would already be as efficient as possible.
      *
      * @return {@code true} if caching will be globally enabled if a {@link CacheManager} has been
-     *         configured, {@code false} otherwise
+     * configured, {@code false} otherwise
      */
     public boolean isCachingEnabled() {
         return cachingEnabled;
@@ -196,7 +199,7 @@ public abstract class CachingRealm implements Realm, Nameable, CacheManagerAware
      *
      * @param principals the PrincipalCollection holding all principals (from all realms) associated with a single Subject.
      * @return the 'primary' principal attributed to this particular realm, or the fallback 'master' principal if it
-     *         exists, or if not {@code null}.
+     * exists, or if not {@code null}.
      * @since 1.2
      */
     protected Object getAvailablePrincipal(PrincipalCollection principals) {
@@ -213,4 +216,5 @@ public abstract class CachingRealm implements Realm, Nameable, CacheManagerAware
 
         return primary;
     }
+
 }

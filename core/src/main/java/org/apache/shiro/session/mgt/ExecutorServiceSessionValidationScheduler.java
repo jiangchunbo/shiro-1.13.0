@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * SessionValidationScheduler implementation that uses a
  * {@link ScheduledExecutorService} to call {@link ValidatingSessionManager#validateSessions()} every
@@ -39,13 +38,19 @@ public class ExecutorServiceSessionValidationScheduler implements SessionValidat
 
     //TODO - complete JavaDoc
 
-    /** Private internal log instance. */
+    /**
+     * Private internal log instance.
+     */
     private static final Logger log = LoggerFactory.getLogger(ExecutorServiceSessionValidationScheduler.class);
 
     ValidatingSessionManager sessionManager;
+
     private ScheduledExecutorService service;
+
     private long interval = DefaultSessionManager.DEFAULT_SESSION_VALIDATION_INTERVAL;
+
     private boolean enabled = false;
+
     private String threadNamePrefix = "SessionValidationThread-";
 
     public ExecutorServiceSessionValidationScheduler() {
@@ -85,23 +90,23 @@ public class ExecutorServiceSessionValidationScheduler implements SessionValidat
     }
 
     /**
-     * Creates a single thread {@link ScheduledExecutorService} to validate sessions at fixed intervals 
+     * Creates a single thread {@link ScheduledExecutorService} to validate sessions at fixed intervals
      * and enables this scheduler. The executor is created as a daemon thread to allow JVM to shut down
      */
     //TODO Implement an integration test to test for jvm exit as part of the standalone example
     // (so we don't have to change the unit test execution model for the core module)
     public void enableSessionValidation() {
         if (this.interval > 0l) {
-            this.service = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {  
-	            private final AtomicInteger count = new AtomicInteger(1);
+            this.service = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+                private final AtomicInteger count = new AtomicInteger(1);
 
-	            public Thread newThread(Runnable r) {  
-	                Thread thread = new Thread(r);  
-	                thread.setDaemon(true);  
-	                thread.setName(threadNamePrefix + count.getAndIncrement());
-	                return thread;  
-	            }  
-            });                  
+                public Thread newThread(Runnable r) {
+                    Thread thread = new Thread(r);
+                    thread.setDaemon(true);
+                    thread.setName(threadNamePrefix + count.getAndIncrement());
+                    return thread;
+                }
+            });
             this.service.scheduleAtFixedRate(this, interval, interval, TimeUnit.MILLISECONDS);
         }
         this.enabled = true;
@@ -134,4 +139,5 @@ public class ExecutorServiceSessionValidationScheduler implements SessionValidat
         }
         this.enabled = false;
     }
+
 }
