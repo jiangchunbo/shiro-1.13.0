@@ -111,6 +111,7 @@ public abstract class AbstractValidatingSessionManager extends AbstractNativeSes
 
     @Override
     protected final Session doGetSession(final SessionKey key) throws InvalidSessionException {
+        // 开启会话校验定时器
         enableSessionValidationIfNecessary();
 
         log.trace("Attempting to retrieve session with key {}", key);
@@ -142,9 +143,11 @@ public abstract class AbstractValidatingSessionManager extends AbstractNativeSes
         try {
             doValidate(session);
         } catch (ExpiredSessionException ese) {
+            // 会话由于过期了抛出了这个异常
             onExpiration(session, ese, key);
             throw ese;
         } catch (InvalidSessionException ise) {
+            // 会话由于被主动停止，或者是之前调用过 validate 检查到会话过期，停止会话，第二次又调用就抛出 StoppedSessionException(InvalidSessionException)
             onInvalidation(session, ise, key);
             throw ise;
         }

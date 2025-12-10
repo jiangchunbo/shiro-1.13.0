@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpSession;
 import java.security.Principal;
 
-
 /**
  * A {@code ShiroHttpServletRequest} wraps the Servlet container's original {@code ServletRequest} instance, but ensures
  * that all {@link HttpServletRequest} invocations that require Shiro's support ({@link #getRemoteUser getRemoteUser},
@@ -45,17 +44,25 @@ public class ShiroHttpServletRequest extends HttpServletRequestWrapper {
 
     //The following 7 constants support the Shiro's implementation of the Servlet Specification
     public static final String COOKIE_SESSION_ID_SOURCE = "cookie";
+
     public static final String URL_SESSION_ID_SOURCE = "url";
+
     public static final String REFERENCED_SESSION_ID = ShiroHttpServletRequest.class.getName() + "_REQUESTED_SESSION_ID";
+
     public static final String REFERENCED_SESSION_ID_IS_VALID = ShiroHttpServletRequest.class.getName() + "_REQUESTED_SESSION_ID_VALID";
+
     public static final String REFERENCED_SESSION_IS_NEW = ShiroHttpServletRequest.class.getName() + "_REFERENCED_SESSION_IS_NEW";
+
     public static final String REFERENCED_SESSION_ID_SOURCE = ShiroHttpServletRequest.class.getName() + "REFERENCED_SESSION_ID_SOURCE";
+
     public static final String IDENTITY_REMOVED_KEY = ShiroHttpServletRequest.class.getName() + "_IDENTITY_REMOVED_KEY";
+
     public static final String SESSION_ID_URL_REWRITING_ENABLED = ShiroHttpServletRequest.class.getName() + "_SESSION_ID_URL_REWRITING_ENABLED";
 
     protected ServletContext servletContext = null;
 
     protected HttpSession session = null;
+
     protected boolean httpSessions = true;
 
     public ShiroHttpServletRequest(HttpServletRequest wrapped, ServletContext servletContext, boolean httpSessions) {
@@ -152,7 +159,7 @@ public class ShiroHttpServletRequest extends HttpServletRequestWrapper {
             }
         } else {
             boolean existing = getSubject().getSession(false) != null;
-            
+
             if (this.session == null || !existing) {
                 Session shiroSession = getSubject().getSession(create);
                 if (shiroSession != null) {
@@ -222,6 +229,7 @@ public class ShiroHttpServletRequest extends HttpServletRequestWrapper {
     }
 
     private class ObjectPrincipal implements java.security.Principal {
+
         private Object object = null;
 
         public ObjectPrincipal(Object object) {
@@ -251,5 +259,7 @@ public class ShiroHttpServletRequest extends HttpServletRequestWrapper {
         public String toString() {
             return object.toString();
         }
+
     }
+
 }

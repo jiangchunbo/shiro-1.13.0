@@ -226,6 +226,7 @@ public class DefaultWebSecurityManager extends DefaultSecurityManager implements
 
     @Override
     protected SessionKey getSessionKey(SubjectContext context) {
+        // 如果是 Web 环境，构建 WebSessionKey 实例 (内置 ServletRequest 和 ServletResponse)
         if (WebUtils.isWeb(context)) {
             Serializable sessionId = context.getSessionId();
             ServletRequest request = WebUtils.getRequest(context);

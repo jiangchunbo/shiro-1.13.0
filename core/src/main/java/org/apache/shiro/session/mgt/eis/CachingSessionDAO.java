@@ -166,8 +166,11 @@ public abstract class CachingSessionDAO extends AbstractSessionDAO implements Ca
      */
     protected Cache<Serializable, Session> createActiveSessionsCache() {
         Cache<Serializable, Session> cache = null;
+
+        // 获取 Shiro 自己的 CacheManager (适配各种缓存框架)
         CacheManager mgr = getCacheManager();
         if (mgr != null) {
+            // 从缓存管理器中拿到 Cache
             String name = getActiveSessionsCacheName();
             cache = mgr.getCache(name);
         }
@@ -197,7 +200,10 @@ public abstract class CachingSessionDAO extends AbstractSessionDAO implements Ca
     protected Session getCachedSession(Serializable sessionId) {
         Session cached = null;
         if (sessionId != null) {
+            // 从 CacheManager 中获取特定 name 的 Cache 对象
             Cache<Serializable, Session> cache = getActiveSessionsCacheLazy();
+
+            // 从 Cache 中检索 Session
             if (cache != null) {
                 cached = getCachedSession(sessionId, cache);
             }
@@ -256,6 +262,7 @@ public abstract class CachingSessionDAO extends AbstractSessionDAO implements Ca
      * @throws UnknownSessionException if the id specified does not correspond to any session in the cache or EIS.
      */
     public Session readSession(Serializable sessionId) throws UnknownSessionException {
+        // 从缓存中检索 Session 对象
         Session s = getCachedSession(sessionId);
         if (s == null) {
             s = super.readSession(sessionId);

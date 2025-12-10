@@ -70,6 +70,7 @@ public class ServletContainerSessionManager implements WebSessionManager {
             throw new IllegalArgumentException(msg);
         }
 
+        // 强转为 HTTP 协议
         HttpServletRequest request = WebUtils.getHttpRequest(key);
 
         Session session = null;

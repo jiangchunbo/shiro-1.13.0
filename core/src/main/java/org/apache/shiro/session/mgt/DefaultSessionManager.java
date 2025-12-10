@@ -104,7 +104,7 @@ public class DefaultSessionManager extends AbstractValidatingSessionManager impl
      * some other means (cron, quartz, etc).
      *
      * @return {@code true} if sessions should be automatically deleted after they are discovered to be invalid,
-     *         {@code false} if invalid sessions will be manually deleted by some process external to Shiro's control.
+     * {@code false} if invalid sessions will be manually deleted by some process external to Shiro's control.
      * @since 1.0
      */
     public boolean isDeleteInvalidSessions() {
@@ -213,12 +213,15 @@ public class DefaultSessionManager extends AbstractValidatingSessionManager impl
     }
 
     protected Session retrieveSession(SessionKey sessionKey) throws UnknownSessionException {
+        // 当初将 SessionId 封装成 SessionKey，如今又要解析 SessionKey，获取 SessionId
         Serializable sessionId = getSessionId(sessionKey);
         if (sessionId == null) {
             log.debug("Unable to resolve session ID from SessionKey [{}].  Returning null to indicate a " +
                     "session could not be found.", sessionKey);
             return null;
         }
+
+        // 通过 SessionId 这个可序列化的对象，获取 Session
         Session s = retrieveSessionFromDataSource(sessionId);
         if (s == null) {
             //session ID was provided, meaning one is expected to be found, but we couldn't find one:
@@ -228,6 +231,12 @@ public class DefaultSessionManager extends AbstractValidatingSessionManager impl
         return s;
     }
 
+    /**
+     * 从 SessionKey 里面获取 SessionId。但是，这个方法没有那么简单！SessionKey 对于 Web 环境来说，包含 ServletRequest，这个对象里面也有 SessionId
+     *
+     * @param sessionKey {@link org.apache.shiro.web.session.mgt.WebSessionKey}
+     * @return {@link Serializable} SessionId
+     */
     protected Serializable getSessionId(SessionKey sessionKey) {
         return sessionKey.getSessionId();
     }

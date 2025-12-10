@@ -46,6 +46,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@code CacheManager} to perform caching, and the cache is considered the system of record, nothing further needs to
  * be done for the {@link #doReadSession}, {@link #doUpdate} and {@link #doDelete} method implementations.  This class
  * implements those methods as required by the parent class, but they essentially do nothing.
+ * <p>
+ * 企业级缓存的实现类不应该再去执行任何加载的方法，期望将检索能力交给上层存储设施
  *
  * @since 1.0
  */
@@ -79,4 +81,5 @@ public class EnterpriseCacheSessionDAO extends CachingSessionDAO {
     protected void doDelete(Session session) {
         //does nothing - parent class removes from cache.
     }
+
 }

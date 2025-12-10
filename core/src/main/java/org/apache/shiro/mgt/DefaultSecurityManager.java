@@ -77,7 +77,9 @@ public class DefaultSecurityManager extends SessionsSecurityManager {
     private static final Logger log = LoggerFactory.getLogger(DefaultSecurityManager.class);
 
     protected RememberMeManager rememberMeManager;
+
     protected SubjectDAO subjectDAO;
+
     protected SubjectFactory subjectFactory;
 
     /**
@@ -133,7 +135,7 @@ public class DefaultSecurityManager extends SessionsSecurityManager {
      * implementation is a {@link DefaultSubjectDAO}.
      *
      * @return the {@code SubjectDAO} responsible for persisting Subject state, typically used after login or when an
-     *         Subject identity is discovered (eg after RememberMe services).
+     * Subject identity is discovered (eg after RememberMe services).
      * @see DefaultSubjectDAO
      * @since 1.2
      */
@@ -174,9 +176,10 @@ public class DefaultSecurityManager extends SessionsSecurityManager {
      * @param info     the {@code AuthenticationInfo} of a newly authenticated user.
      * @param existing the existing {@code Subject} instance that initiated the authentication attempt
      * @return the {@code Subject} instance that represents the context and session data for the newly
-     *         authenticated subject.
+     * authenticated subject.
      */
     protected Subject createSubject(AuthenticationToken token, AuthenticationInfo info, Subject existing) {
+        // 1) 构造用于创建 Subject 的上下文
         SubjectContext context = createSubjectContext();
         context.setAuthenticated(true);
         context.setAuthenticationToken(token);
@@ -185,6 +188,8 @@ public class DefaultSecurityManager extends SessionsSecurityManager {
         if (existing != null) {
             context.setSubject(existing);
         }
+
+        // 2) 创建 Subject (底层委托给 SubjectFactory)
         return createSubject(context);
     }
 
@@ -321,6 +326,9 @@ public class DefaultSecurityManager extends SessionsSecurityManager {
      * <li>returns the constructed {@code Subject} instance.</li>
      * </ol>
      *
+     * 创建 Subject 对于是否是 Web 应用来说，逻辑都是一样的。
+     * 上下文可能不一样，Web 是 {@link org.apache.shiro.web.subject.WebSubjectContext}
+     *
      * @param subjectContext any data needed to direct how the Subject should be constructed.
      * @return the {@code Subject} instance reflecting the specified contextual data.
      * @see #ensureSecurityManager(org.apache.shiro.subject.SubjectContext)
@@ -332,9 +340,11 @@ public class DefaultSecurityManager extends SessionsSecurityManager {
      */
     public Subject createSubject(SubjectContext subjectContext) {
         //create a copy so we don't modify the argument's backing map:
+        // 拷贝生成一个新的 SubjectContext，而且类型兼容，Web 依然是 Web
         SubjectContext context = copy(subjectContext);
 
         //ensure that the context has a SecurityManager instance, and if not, add one:
+        // 确保 Context 注入了 SecurityManager 对象
         context = ensureSecurityManager(context);
 
         //Resolve an associated Session (usually based on a referenced session ID), and place it in the context before
@@ -346,6 +356,7 @@ public class DefaultSecurityManager extends SessionsSecurityManager {
         //if possible before handing off to the SubjectFactory:
         context = resolvePrincipals(context);
 
+        // 调用 SubjectFactory
         Subject subject = doCreateSubject(context);
 
         //save this subject for future reference if necessary:
@@ -437,14 +448,18 @@ public class DefaultSecurityManager extends SessionsSecurityManager {
      */
     @SuppressWarnings({"unchecked"})
     protected SubjectContext resolveSession(SubjectContext context) {
+        // 快速检查，一个是检查 Context 是否存在会话，另一个是检查 Subject 是否存在会话
         if (context.resolveSession() != null) {
             log.debug("Context already contains a session.  Returning.");
             return context;
         }
+
         try {
             //Context couldn't resolve it directly, let's see if we can since we have direct access to 
             //the session manager:
             Session session = resolveContextSession(context);
+
+            // 解析到 Session 对象就存储到上下文
             if (session != null) {
                 context.setSession(session);
             }
@@ -456,6 +471,7 @@ public class DefaultSecurityManager extends SessionsSecurityManager {
     }
 
     protected Session resolveContextSession(SubjectContext context) throws InvalidSessionException {
+        // 构建会话 Key (要不就是 WebSessionKey，要不就是 DefaultSessionKey)
         SessionKey key = getSessionKey(context);
         if (key != null) {
             return getSession(key);
@@ -621,4 +637,5 @@ public class DefaultSecurityManager extends SessionsSecurityManager {
         }
         return null;
     }
+
 }

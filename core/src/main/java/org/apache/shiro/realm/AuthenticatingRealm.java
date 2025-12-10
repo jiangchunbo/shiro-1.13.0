@@ -512,6 +512,7 @@ public abstract class AuthenticatingRealm extends CachingRealm implements Initia
      * @since 1.2
      */
     private void cacheAuthenticationInfoIfPossible(AuthenticationToken token, AuthenticationInfo info) {
+        // 检查缓存是否启用
         if (!isAuthenticationCachingEnabled(token, info)) {
             log.debug("AuthenticationInfo caching is disabled for info [{}].  Submitted token: [{}].", info, token);
             //return quietly, caching is disabled for this token/info pair:
@@ -572,10 +573,15 @@ public abstract class AuthenticatingRealm extends CachingRealm implements Initia
     public final AuthenticationInfo getAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
         // 由于任何 Realm 都有缓存的能力，所以先尝试从缓存中获取
         AuthenticationInfo info = getCachedAuthenticationInfo(token);
+
         if (info == null) {
-            //otherwise not cached, perform the lookup:
+            // otherwise not cached, perform the lookup:
+            // 没有使用缓存，或者缓存未命中，那么就执行 [加载]
             info = doGetAuthenticationInfo(token);
+
             log.debug("Looked up AuthenticationInfo [{}] from doGetAuthenticationInfo", info);
+
+            // 缓存它
             if (token != null && info != null) {
                 cacheAuthenticationInfoIfPossible(token, info);
             }

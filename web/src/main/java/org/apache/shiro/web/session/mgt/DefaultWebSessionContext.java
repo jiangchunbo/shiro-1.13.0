@@ -27,6 +27,8 @@ import java.util.Map;
 /**
  * Default implementation of the {@link WebSessionContext} interface which provides getters and setters that
  * wrap interaction with the underlying backing context map.
+ * <p>
+ * 比一般的 {@link DefaultSessionContext}  多两个信息: {@link ServletRequest} 和 {@link ServletResponse}
  *
  * @since 1.0
  */
@@ -35,6 +37,7 @@ public class DefaultWebSessionContext extends DefaultSessionContext implements W
     private static final long serialVersionUID = -3974604687792523072L;
 
     private static final String SERVLET_REQUEST = DefaultWebSessionContext.class.getName() + ".SERVLET_REQUEST";
+
     private static final String SERVLET_RESPONSE = DefaultWebSessionContext.class.getName() + ".SERVLET_RESPONSE";
 
     public DefaultWebSessionContext() {
@@ -64,4 +67,5 @@ public class DefaultWebSessionContext extends DefaultSessionContext implements W
     public ServletResponse getServletResponse() {
         return getTypedValue(SERVLET_RESPONSE, ServletResponse.class);
     }
+
 }

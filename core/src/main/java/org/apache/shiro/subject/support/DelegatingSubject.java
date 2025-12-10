@@ -84,6 +84,8 @@ public class DelegatingSubject implements Subject {
     protected Session session;
 
     /**
+     * 是否启用 Session。如果不启用，将不会创建 Session，而且，如果尝试 [显式] 创建 Session，甚至会得到异常。
+     *
      * @since 1.2
      */
     protected boolean sessionCreationEnabled;

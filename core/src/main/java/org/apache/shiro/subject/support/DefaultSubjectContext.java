@@ -171,7 +171,6 @@ public class DefaultSubjectContext extends MapContext implements SubjectContext 
         return principals;
     }
 
-
     public Session getSession() {
         return getTypedValue(SESSION, Session.class);
     }
@@ -180,10 +179,17 @@ public class DefaultSubjectContext extends MapContext implements SubjectContext 
         nullSafePut(SESSION, session);
     }
 
+    /**
+     * 从 {@link SubjectContext} 中解析 Session
+     *
+     * @return {@link Session}
+     */
     public Session resolveSession() {
+        // 从存储中检查 Session
         Session session = getSession();
         if (session == null) {
             //try the Subject if it exists:
+            // 如果不能直接找到 Session，再找 Subject.getSession(false)
             Subject existingSubject = getSubject();
             if (existingSubject != null) {
                 session = existingSubject.getSession(false);
@@ -276,4 +282,5 @@ public class DefaultSubjectContext extends MapContext implements SubjectContext 
 
         return host;
     }
+
 }

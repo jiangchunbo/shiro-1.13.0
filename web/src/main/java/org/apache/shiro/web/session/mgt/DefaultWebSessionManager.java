@@ -39,7 +39,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.Serializable;
 
-
 /**
  * Web-application capable {@link org.apache.shiro.session.mgt.SessionManager SessionManager} implementation.
  *
@@ -50,7 +49,9 @@ public class DefaultWebSessionManager extends DefaultSessionManager implements W
     private static final Logger log = LoggerFactory.getLogger(DefaultWebSessionManager.class);
 
     private Cookie sessionIdCookie;
+
     private boolean sessionIdCookieEnabled;
+
     private boolean sessionIdUrlRewritingEnabled;
 
     public DefaultWebSessionManager() {
@@ -106,28 +107,38 @@ public class DefaultWebSessionManager extends DefaultSessionManager implements W
     }
 
     private String getSessionIdCookieValue(ServletRequest request, ServletResponse response) {
+        // 如果没有启用 SessionId Cookie 存储，就不解析，即使可以解析出来
         if (!isSessionIdCookieEnabled()) {
             log.debug("Session ID cookie is disabled - session id will not be acquired from a request cookie.");
             return null;
         }
+
+        // 只支持 HttpServletRequest，因为这里是 Cookie，其他协议不行
         if (!(request instanceof HttpServletRequest)) {
             log.debug("Current request is not an HttpServletRequest - cannot get session ID cookie.  Returning null.");
             return null;
         }
+
+        // 读取 Cookie
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         return getSessionIdCookie().readValue(httpRequest, WebUtils.toHttp(response));
     }
 
+    /**
+     * 从 request 中获取 SessionId，一般就是 Cookie
+     */
     private Serializable getReferencedSessionId(ServletRequest request, ServletResponse response) {
-
+        // 从 Cookie 中解析 SessionId
         String id = getSessionIdCookieValue(request, response);
+
+        // 打标记，标记 Session 可以从 Cookie 解析到
         if (id != null) {
-            request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID_SOURCE,
-                    ShiroHttpServletRequest.COOKIE_SESSION_ID_SOURCE);
+            request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID_SOURCE, ShiroHttpServletRequest.COOKIE_SESSION_ID_SOURCE);
         } else {
             //not in a cookie, or cookie is disabled - try the request URI as a fallback (i.e. due to URL rewriting):
 
             //try the URI path segment parameters first:
+            // 从 URI 路径解析 Session ? 似乎不太安全，别看了！
             id = getUriPathSegmentParamValue(request, ShiroHttpSession.DEFAULT_SESSION_ID_NAME);
 
             if (id == null && request instanceof HttpServletRequest) {
@@ -143,15 +154,18 @@ public class DefaultWebSessionManager extends DefaultSessionManager implements W
                     id = request.getParameter(name.toLowerCase());
                 }
             }
+            // 打标记，标记 Session 可以从 URL 解析到
             if (id != null) {
-                request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID_SOURCE,
-                        ShiroHttpServletRequest.URL_SESSION_ID_SOURCE);
+                request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID_SOURCE, ShiroHttpServletRequest.URL_SESSION_ID_SOURCE);
             }
         }
+
+        // 把 SessionId 存储起来，维护到请求上下文 (其实就是 request attribute 而已)
         if (id != null) {
             request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID, id);
             //automatically mark it valid here.  If it is invalid, the
             //onUnknownSession method below will be invoked and we'll remove the attribute at that time.
+            // 暂时我们认为是有效的 SessionId，如果 Session 过期，会被清除这个标记
             request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID_IS_VALID, Boolean.TRUE);
         }
 
@@ -169,7 +183,7 @@ public class DefaultWebSessionManager extends DefaultSessionManager implements W
         if (!(servletRequest instanceof HttpServletRequest)) {
             return null;
         }
-        HttpServletRequest request = (HttpServletRequest)servletRequest;
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
         String uri = request.getRequestURI();
         if (uri == null) {
             return null;
@@ -190,7 +204,7 @@ public class DefaultWebSessionManager extends DefaultSessionManager implements W
 
         final String TOKEN = paramName + "=";
 
-        uri = uri.substring(index+1); //uri now contains only the path segment params
+        uri = uri.substring(index + 1); //uri now contains only the path segment params
 
         //we only care about the last JSESSIONID param:
         index = uri.lastIndexOf(TOKEN);
@@ -202,7 +216,7 @@ public class DefaultWebSessionManager extends DefaultSessionManager implements W
         uri = uri.substring(index + TOKEN.length());
 
         index = uri.indexOf(';'); //strip off any remaining segment params:
-        if(index >= 0) {
+        if (index >= 0) {
             uri = uri.substring(0, index);
         }
 
@@ -272,9 +286,13 @@ public class DefaultWebSessionManager extends DefaultSessionManager implements W
     @Override
     public Serializable getSessionId(SessionKey key) {
         Serializable id = super.getSessionId(key);
+
+        // 如果父类没有获取到，且是一个 Web 环境
         if (id == null && WebUtils.isWeb(key)) {
             ServletRequest request = WebUtils.getRequest(key);
             ServletResponse response = WebUtils.getResponse(key);
+
+            // 从 Http 请求的 Cookie 获取
             id = getSessionId(request, response);
         }
         return id;
@@ -333,4 +351,5 @@ public class DefaultWebSessionManager extends DefaultSessionManager implements W
     public boolean isServletContainerSessions() {
         return false;
     }
+
 }

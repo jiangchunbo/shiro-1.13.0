@@ -54,13 +54,30 @@ public class DefaultWebSubjectFactory extends DefaultSubjectFactory {
         if (!(context instanceof WebSubjectContext) || isNotBasedOnWebSubject) {
             return super.createSubject(context);
         }
+        // 上下文对象
         WebSubjectContext wsc = (WebSubjectContext) context;
+
+        // 下面是调用 Context 各种解析以及 get 方法
+
+        // 从上下文中获取 SecurityManager
         SecurityManager securityManager = wsc.resolveSecurityManager();
+
+        // 解析 Session。这个方法内部甚至会委托给 SessionManager 去开启一个会话
         Session session = wsc.resolveSession();
+
+        // 是否允许创建 Session
         boolean sessionEnabled = wsc.isSessionCreationEnabled();
+
+        // 从中解析获取 Principal
         PrincipalCollection principals = wsc.resolvePrincipals();
+
+        // 从中解析获取 authenticated
         boolean authenticated = wsc.resolveAuthenticated();
+
+        // 从中解析 Host
         String host = wsc.resolveHost();
+
+        // 从中解析获取 ServletRequest 和 ServletResponse
         ServletRequest request = wsc.resolveServletRequest();
         ServletResponse response = wsc.resolveServletResponse();
 
